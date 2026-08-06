@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>GRaPHeNe</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <div id="app">
+    <header id="brand">
+      <h1>GRaPHeNe</h1>
+    </header>
+
+    <div id="main">
+      <aside id="sidebar">
+        <section id="equations">
+          <h2>Equations</h2>
+          <div class="eq-row" data-index="0">
+            <input type="text" class="eq-input" placeholder="e.g. sin(x)" />
+            <div class="eq-error"></div>
+          </div>
+          <div class="eq-row" data-index="1">
+            <input type="text" class="eq-input" placeholder="e.g. x^2" />
+            <div class="eq-error"></div>
+          </div>
+          <div class="eq-row" data-index="2">
+            <input type="text" class="eq-input" placeholder="e.g. cos(x)*x" />
+            <div class="eq-error"></div>
+          </div>
+          <button id="plot-btn">PLOT</button>
+        </section>
+
+        <details id="bounds" open>
+          <summary>Bounds</summary>
+          <div class="bound-row">
+            <label>X<sub>min</sub></label>
+            <input type="number" id="xmin" value="-10" step="1">
+          </div>
+          <div class="bound-row">
+            <label>X<sub>max</sub></label>
+            <input type="number" id="xmax" value="10" step="1">
+          </div>
+          <div class="bound-row">
+            <label>Y<sub>min</sub></label>
+            <input type="number" id="ymin" value="-7.5" step="0.5">
+          </div>
+          <div class="bound-row">
+            <label>Y<sub>max</sub></label>
+            <input type="number" id="ymax" value="7.5" step="0.5">
+          </div>
+        </details>
+      </aside>
+
+      <main id="viewport">
+        <span id="placeholder">Enter equation and click PLOT</span>
+        <img id="graph-img" alt="Graph" />
+      </main>
+    </div>
+  </div>
+
+  <script src="app.js"></script>
+</body>
+</html>

@@ -1,0 +1,18 @@
+{
+  "name": "graphehe",
+  "version": "1.0.0",
+  "description": "GRaPHeNe – Server-Validated Mathematical Graphing App",
+  "main": "server/index.js",
+  "scripts": {
+    "start": "node server/index.js",
+    "dev": "node server/index.js"
+  },
+  "dependencies": {
+    "@napi-rs/canvas": "^1.0.2",
+    "canvas": "^2.11.2",
+    "express": "^4.18.2",
+    "express-rate-limit": "^8.6.0",
+    "helmet": "^8.3.0",
+    "mathjs": "^12.2.1"
+  }
+}
