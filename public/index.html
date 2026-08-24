@@ -1,64 +1,129 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
-<head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>GRaPHeNe</title>
-  <link rel="stylesheet" href="style.css">
-</head>
-<body>
-  <div id="app">
-    <header id="brand">
-      <h1>GRaPHeNe</h1>
-    </header>
+    <head>
+        <meta charset="UTF-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <title>GRaPHeNe · Graphing Calculator</title>
+        <link rel="stylesheet" href="style.css" />
+    </head>
+    <body>
+        <div class="bg-glow" aria-hidden="true">
+            <div class="glow g1"></div>
+            <div class="glow g2"></div>
+            <div class="glow g3"></div>
+        </div>
 
-    <div id="main">
-      <aside id="sidebar">
-        <section id="equations">
-          <h2>Equations</h2>
-          <div class="eq-row" data-index="0">
-            <input type="text" class="eq-input" placeholder="e.g. sin(x)" />
-            <div class="eq-error"></div>
-          </div>
-          <div class="eq-row" data-index="1">
-            <input type="text" class="eq-input" placeholder="e.g. x^2" />
-            <div class="eq-error"></div>
-          </div>
-          <div class="eq-row" data-index="2">
-            <input type="text" class="eq-input" placeholder="e.g. cos(x)*x" />
-            <div class="eq-error"></div>
-          </div>
-          <button id="plot-btn">PLOT</button>
-        </section>
+        <div id="app">
+            <header id="brand">
+                <div class="brand-left">
+                    <span class="logo" aria-hidden="true">
+                        <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
+                            <path d="M3 17c3.5 0 4-11 7-11s3.5 8 6 8c2 0 2.5-3 5-3" />
+                        </svg>
+                    </span>
+                    <h1>GRaPHe<span class="accent">Ne</span></h1>
+                </div>
+                <a id="source-link" href="https://github.com/xenod799/graphehe" target="_blank" rel="noopener">
+                    <svg viewBox="0 0 16 16" width="14" height="14" fill="currentColor" aria-hidden="true">
+                        <path d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27s1.36.09 2 .27c1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.01 8.01 0 0 0 16 8c0-4.42-3.58-8-8-8z"/>
+                    </svg>
+                    Source
+                </a>
+            </header>
 
-        <details id="bounds" open>
-          <summary>Bounds</summary>
-          <div class="bound-row">
-            <label>X<sub>min</sub></label>
-            <input type="number" id="xmin" value="-10" step="1">
-          </div>
-          <div class="bound-row">
-            <label>X<sub>max</sub></label>
-            <input type="number" id="xmax" value="10" step="1">
-          </div>
-          <div class="bound-row">
-            <label>Y<sub>min</sub></label>
-            <input type="number" id="ymin" value="-7.5" step="0.5">
-          </div>
-          <div class="bound-row">
-            <label>Y<sub>max</sub></label>
-            <input type="number" id="ymax" value="7.5" step="0.5">
-          </div>
-        </details>
-      </aside>
+            <div id="main">
+                <aside id="sidebar">
+                    <section class="panel" id="equations-panel">
+                        <h2>Equations</h2>
+                        <div id="eq-list"></div>
+                        <button type="button" id="add-eq" class="ghost-btn">
+                            <svg viewBox="0 0 24 24" width="14" height="14" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" fill="none" aria-hidden="true"><path d="M12 5v14M5 12h14"/></svg>
+                            Add equation
+                        </button>
 
-      <main id="viewport">
-        <span id="placeholder">Enter equation and click PLOT</span>
-        <img id="graph-img" alt="Graph" />
-      </main>
-    </div>
-  </div>
+                        <div class="examples" aria-label="Example equations">
+                            <span class="examples-label">Try:</span>
+                            <button type="button" class="chip" data-eq="sin(x)">sin(x)</button>
+                            <button type="button" class="chip" data-eq="x^2">x^2</button>
+                            <button type="button" class="chip" data-eq="x^2 + y^2 = 25">circle</button>
+                            <button type="button" class="chip" data-eq="sin(x)*exp(-abs(x)/3)">decay</button>
+                            <button type="button" class="chip" data-eq="tan(x)">tan(x)</button>
+                        </div>
 
-  <script src="app.js"></script>
-</body>
+                        <button id="plot-btn">
+                            <span class="btn-label">Plot</span>
+                            <span class="spinner" aria-hidden="true"></span>
+                        </button>
+                        <p class="kbd-hint"><kbd>Enter</kbd> to plot · <kbd>Ctrl</kbd>+<kbd>Enter</kbd> anywhere</p>
+                    </section>
+
+                    <details class="panel" id="bounds" open>
+                        <summary>Bounds</summary>
+                        <div class="bound-grid">
+                            <div class="bound-row">
+                                <label for="xmin">X<sub>min</sub></label>
+                                <input type="number" id="xmin" value="-10" step="1" />
+                            </div>
+                            <div class="bound-row">
+                                <label for="xmax">X<sub>max</sub></label>
+                                <input type="number" id="xmax" value="10" step="1" />
+                            </div>
+                            <div class="bound-row">
+                                <label for="ymin">Y<sub>min</sub></label>
+                                <input type="number" id="ymin" value="-7.5" step="0.5" />
+                            </div>
+                            <div class="bound-row">
+                                <label for="ymax">Y<sub>max</sub></label>
+                                <input type="number" id="ymax" value="7.5" step="0.5" />
+                            </div>
+                        </div>
+                        <button type="button" id="reset-bounds" class="ghost-btn small">Reset view</button>
+                    </details>
+                </aside>
+
+                <main id="viewport">
+                    <div id="placeholder">
+                        <div class="ph-icon" aria-hidden="true">
+                            <svg viewBox="0 0 24 24" width="34" height="34" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round">
+                                <path d="M3 17c3.5 0 4-11 7-11s3.5 8 6 8c2 0 2.5-3 5-3"/>
+                            </svg>
+                        </div>
+                        <p>Type an equation and hit Plot</p>
+                        <p class="ph-sub">e.g. sin(x) &nbsp;·&nbsp; x^2 &nbsp;·&nbsp; x^2 + y^2 = 25</p>
+                    </div>
+
+                    <img id="graph-img" alt="Graph" />
+
+                    <div id="toolbar" aria-label="Graph controls">
+                        <button type="button" id="zoom-in" title="Zoom in" aria-label="Zoom in">
+                            <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="M21 21l-4.3-4.3M11 8v6M8 11h6"/></svg>
+                        </button>
+                        <button type="button" id="zoom-out" title="Zoom out" aria-label="Zoom out">
+                            <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="M21 21l-4.3-4.3M8 11h6"/></svg>
+                        </button>
+                        <button type="button" id="reset-view" title="Reset view" aria-label="Reset view">
+                            <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M3 9V3h6M21 9V3h-6M3 15v6h6M21 15v6h-6"/></svg>
+                        </button>
+                        <button type="button" id="download" title="Download PNG" aria-label="Download PNG">
+                            <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M12 3v12m0 0l-4-4m4 4l4-4M4 19h16"/></svg>
+                        </button>
+                        <button type="button" id="share" title="Copy shareable link" aria-label="Copy shareable link">
+                            <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M10 14a5 5 0 0 0 7.5.5l2-2a5 5 0 0 0-7-7l-1 1"/><path d="M14 10a5 5 0 0 0-7.5-.5l-2 2a5 5 0 0 0 7 7l1-1"/></svg>
+                        </button>
+                    </div>
+
+                    <div id="status-chip" role="status"></div>
+
+                    <div id="loading-overlay" hidden>
+                        <div class="loader-ring" aria-hidden="true"></div>
+                        <p>Rendering…</p>
+                    </div>
+                </main>
+            </div>
+        </div>
+
+        <div id="toast-stack" aria-live="polite"></div>
+
+        <script src="app.js"></script>
+    </body>
 </html>
