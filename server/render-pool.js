@@ -25,7 +25,9 @@ class RenderPool {
       err.status = 503;
       return Promise.reject(err);
     }
-    return new Promise((resolve, reject) => this.waiters.push({ resolve, reject }));
+    return new Promise((resolve, reject) =>
+      this.waiters.push({ resolve, reject }),
+    );
   }
 
   _release(worker) {

@@ -31,7 +31,7 @@ app.use(
       },
     },
     crossOriginEmbedderPolicy: false,
-  })
+  }),
 );
 
 app.use(express.json({ limit: "16kb" }));
@@ -59,7 +59,9 @@ app.post("/api/generate-graph", async (req, res) => {
   }
 
   if (equations.length > MAX_EQUATIONS) {
-    return res.status(400).json({ error: `Max ${MAX_EQUATIONS} equations allowed.` });
+    return res
+      .status(400)
+      .json({ error: `Max ${MAX_EQUATIONS} equations allowed.` });
   }
 
   const w = Math.min(Math.max(Number(width) || 800, 200), 1600);
@@ -82,10 +84,14 @@ app.post("/api/generate-graph", async (req, res) => {
     return res.status(400).json({ error: "yMin must be less than yMax." });
   }
   if (xMaxVal - xMinVal > MAX_X_RANGE) {
-    return res.status(400).json({ error: `X range too large (max ${MAX_X_RANGE}).` });
+    return res
+      .status(400)
+      .json({ error: `X range too large (max ${MAX_X_RANGE}).` });
   }
   if (yMaxVal - yMinVal > MAX_Y_RANGE) {
-    return res.status(400).json({ error: `Y range too large (max ${MAX_Y_RANGE}).` });
+    return res
+      .status(400)
+      .json({ error: `Y range too large (max ${MAX_Y_RANGE}).` });
   }
 
   const bounds = {
@@ -120,15 +126,13 @@ app.post("/api/generate-graph", async (req, res) => {
   try {
     result = await pool.run({ items, bounds });
   } catch (e) {
-    return res
-      .status(e.status || 500)
-      .json({
-        errors,
-        error:
-          e.status === 503
-            ? "Server is busy, please try again shortly."
-            : "Render failed.",
-      });
+    return res.status(e.status || 500).json({
+      errors,
+      error:
+        e.status === 503
+          ? "Server is busy, please try again shortly."
+          : "Render failed.",
+    });
   }
 
   if (result.renderError) {
@@ -152,7 +156,9 @@ app.use("/api", (req, res) => {
 });
 
 app.use((err, req, res, next) => {
-  res.status(err.status || err.statusCode || 500).json({ error: "Bad request." });
+  res
+    .status(err.status || err.statusCode || 500)
+    .json({ error: "Bad request." });
 });
 
 app.listen(PORT, "127.0.0.1", () => {

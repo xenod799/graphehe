@@ -4,32 +4,86 @@ const { createCanvas } = require("@napi-rs/canvas");
 const math = create(all);
 
 const ALLOWED_FUNCTIONS = new Set([
-  "abs", "ceil", "floor", "round", "sign", "sqrt", "cbrt",
-  "log", "log2", "log10", "ln",
-  "sin", "cos", "tan", "asin", "acos", "atan", "atan2",
-  "sinh", "cosh", "tanh", "asinh", "acosh", "atanh",
-  "exp", "pow", "mod",
-  "min", "max", "hypot",
-  "pi", "e", "i",
+  "abs",
+  "ceil",
+  "floor",
+  "round",
+  "sign",
+  "sqrt",
+  "cbrt",
+  "log",
+  "log2",
+  "log10",
+  "ln",
+  "sin",
+  "cos",
+  "tan",
+  "asin",
+  "acos",
+  "atan",
+  "atan2",
+  "sinh",
+  "cosh",
+  "tanh",
+  "asinh",
+  "acosh",
+  "atanh",
+  "exp",
+  "pow",
+  "mod",
+  "min",
+  "max",
+  "hypot",
+  "pi",
+  "e",
+  "i",
 ]);
 
 const BLOCKED_FUNCTIONS = new Set([
-  "factorial", "gamma", "combination", "permutation",
-  "gcd", "lcm", "bitAnd", "bitOr", "bitXor",
-  "leftShift", "rightShift", "rightArithShift",
-  "bellNumbers", "stirlingS2", "catalan",
+  "factorial",
+  "gamma",
+  "combination",
+  "permutation",
+  "gcd",
+  "lcm",
+  "bitAnd",
+  "bitOr",
+  "bitXor",
+  "leftShift",
+  "rightShift",
+  "rightArithShift",
+  "bellNumbers",
+  "stirlingS2",
+  "catalan",
 ]);
 
 const ALLOWED_SYMBOLS = new Set([
-  "x", "y",
-  "pi", "e", "i", "tau", "phi",
-  "Infinity", "NaN",
-  "LN2", "LN10", "LOG2E", "LOG10E", "SQRT1_2", "SQRT2",
+  "x",
+  "y",
+  "pi",
+  "e",
+  "i",
+  "tau",
+  "phi",
+  "Infinity",
+  "NaN",
+  "LN2",
+  "LN10",
+  "LOG2E",
+  "LOG10E",
+  "SQRT1_2",
+  "SQRT2",
 ]);
 
 const ALLOWED_OPERATORS = new Set([
-  "add", "subtract", "multiply", "divide",
-  "pow", "mod", "unaryMinus", "unaryPlus",
+  "add",
+  "subtract",
+  "multiply",
+  "divide",
+  "pow",
+  "mod",
+  "unaryMinus",
+  "unaryPlus",
 ]);
 
 function validateAst(root) {
@@ -84,8 +138,16 @@ function validateAst(root) {
 const MAX_EVAL_TIME_MS = 3000;
 
 const GRAPH_COLORS = [
-  "#C62828", "#1565C0", "#2E7D32", "#6A1B9A", "#EF6C00",
-  "#00838F", "#AD1457", "#4527A0", "#00695C", "#FF8F00",
+  "#C62828",
+  "#1565C0",
+  "#2E7D32",
+  "#6A1B9A",
+  "#EF6C00",
+  "#00838F",
+  "#AD1457",
+  "#4527A0",
+  "#00695C",
+  "#FF8F00",
 ];
 
 const GRID_COLOR = "#D8DCE4";
@@ -103,12 +165,15 @@ function validateAndParse(equationStr) {
   if (sanitized.length === 0) return { error: "Empty equation." };
   if (sanitized.length > 500) return { error: "Equation too long." };
 
-  const dangerousPatterns = /(\bimport\b|\brequire\b|\beval\b|\bFunction\b|\bthis\b|\bglobal\b|\bprocess\b|\bconstructor\b|\bprototype\b)/i;
+  const dangerousPatterns =
+    /(\bimport\b|\brequire\b|\beval\b|\bFunction\b|\bthis\b|\bglobal\b|\bprocess\b|\bconstructor\b|\bprototype\b)/i;
   if (dangerousPatterns.test(sanitized)) {
     return { error: "Disallowed tokens in expression." };
   }
 
-  const blockedMatch = sanitized.match(/\b(factorial|gamma|combination|permutation|gcd|lcm|bellNumbers|stirlingS2|catalan|bitAnd|bitOr|bitXor|leftShift|rightShift)\b/i);
+  const blockedMatch = sanitized.match(
+    /\b(factorial|gamma|combination|permutation|gcd|lcm|bellNumbers|stirlingS2|catalan|bitAnd|bitOr|bitXor|leftShift|rightShift)\b/i,
+  );
   if (blockedMatch) {
     return { error: `Function "${blockedMatch[0]}" is not allowed.` };
   }
@@ -174,11 +239,15 @@ function validateImplicit(sanitized, eqIndex) {
 
   const leftDisallowed = validateAst(leftNode);
   if (leftDisallowed.length) {
-    return { error: `Symbol or function "${leftDisallowed[0]}" is not allowed (left side).` };
+    return {
+      error: `Symbol or function "${leftDisallowed[0]}" is not allowed (left side).`,
+    };
   }
   const rightDisallowed = validateAst(rightNode);
   if (rightDisallowed.length) {
-    return { error: `Symbol or function "${rightDisallowed[0]}" is not allowed (right side).` };
+    return {
+      error: `Symbol or function "${rightDisallowed[0]}" is not allowed (right side).`,
+    };
   }
 
   let leftCompiled, rightCompiled;
@@ -226,10 +295,10 @@ function drawGrid(ctx, bounds) {
   let xStep, yStep;
   if (ppuX <= ppuY) {
     xStep = niceStep(xRange, 15);
-    yStep = snapToNice(xStep * ppuX / ppuY);
+    yStep = snapToNice((xStep * ppuX) / ppuY);
   } else {
     yStep = niceStep(yRange, 15);
-    xStep = snapToNice(yStep * ppuY / ppuX);
+    xStep = snapToNice((yStep * ppuY) / ppuX);
   }
 
   ctx.beginPath();
@@ -386,7 +455,10 @@ function drawImplicit(ctx, leftCompiled, rightCompiled, color, bounds) {
   let timedOut = false;
 
   for (let j = 0; j <= rows; j++) {
-    if (j % 200 === 0 && Date.now() - start > MAX_EVAL_TIME_MS) { timedOut = true; break; }
+    if (j % 200 === 0 && Date.now() - start > MAX_EVAL_TIME_MS) {
+      timedOut = true;
+      break;
+    }
     for (let i = 0; i <= cols; i++) {
       const x = xMin + (i / cols) * (xMax - xMin);
       const y = yMax - (j / rows) * (yMax - yMin);
@@ -419,7 +491,8 @@ function drawImplicit(ctx, leftCompiled, rightCompiled, color, bounds) {
       const v01 = field[(j + 1) * (cols + 1) + i];
       const v11 = field[(j + 1) * (cols + 1) + i + 1];
 
-      if (!isFinite(v00) || !isFinite(v10) || !isFinite(v01) || !isFinite(v11)) continue;
+      if (!isFinite(v00) || !isFinite(v10) || !isFinite(v01) || !isFinite(v11))
+        continue;
 
       let code = 0;
       if (v00 > 0) code |= 1;
@@ -444,14 +517,36 @@ function drawImplicit(ctx, leftCompiled, rightCompiled, color, bounds) {
 
       const segments = [];
       switch (code) {
-        case 1: case 14: segments.push([left, top]); break;
-        case 2: case 13: segments.push([top, right]); break;
-        case 3: case 12: segments.push([left, right]); break;
-        case 4: case 11: segments.push([right, bottom]); break;
-        case 5: segments.push([left, top], [right, bottom]); break;
-        case 6: case 9: segments.push([top, bottom]); break;
-        case 7: case 8: segments.push([left, bottom]); break;
-        case 10: segments.push([top, left], [bottom, right]); break;
+        case 1:
+        case 14:
+          segments.push([left, top]);
+          break;
+        case 2:
+        case 13:
+          segments.push([top, right]);
+          break;
+        case 3:
+        case 12:
+          segments.push([left, right]);
+          break;
+        case 4:
+        case 11:
+          segments.push([right, bottom]);
+          break;
+        case 5:
+          segments.push([left, top], [right, bottom]);
+          break;
+        case 6:
+        case 9:
+          segments.push([top, bottom]);
+          break;
+        case 7:
+        case 8:
+          segments.push([left, bottom]);
+          break;
+        case 10:
+          segments.push([top, left], [bottom, right]);
+          break;
       }
 
       for (const seg of segments) {
