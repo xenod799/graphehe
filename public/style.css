@@ -248,7 +248,10 @@ html.dark #theme-toggle .moon {
 }
 .eq-input:focus {
   border-color: var(--ink);
-  box-shadow: 0 0 0 2px color-mix(in srgb, var(--ink) 10%, transparent);
+  box-shadow: 0 0 0 2px rgba(17, 24, 39, 0.1);
+}
+html.dark .eq-input:focus {
+  box-shadow: 0 0 0 2px rgba(243, 244, 246, 0.15);
 }
 .eq-row.has-error .eq-input {
   border-color: var(--danger);
@@ -423,16 +426,14 @@ button {
   overflow: hidden;
   background: var(--paper);
   background-image:
-    linear-gradient(
-      color-mix(in srgb, var(--hair) 60%, transparent) 1px,
-      transparent 1px
-    ),
-    linear-gradient(
-      90deg,
-      color-mix(in srgb, var(--hair) 60%, transparent) 1px,
-      transparent 1px
-    );
+    linear-gradient(rgba(229, 231, 235, 0.6) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(229, 231, 235, 0.6) 1px, transparent 1px);
   background-size: 32px 32px;
+}
+html.dark #viewport {
+  background-image:
+    linear-gradient(rgba(31, 41, 55, 0.6) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(31, 41, 55, 0.6) 1px, transparent 1px);
 }
 #graph-canvas {
   display: block;
@@ -610,7 +611,10 @@ button {
 }
 .bound-row input:focus {
   border-color: var(--ink);
-  box-shadow: 0 0 0 2px color-mix(in srgb, var(--ink) 10%, transparent);
+  box-shadow: 0 0 0 2px rgba(17, 24, 39, 0.1);
+}
+html.dark .bound-row input:focus {
+  box-shadow: 0 0 0 2px rgba(243, 244, 246, 0.15);
 }
 
 @media (max-width: 768px) {

@@ -354,8 +354,10 @@
   }
 
   function getViewportSize() {
-    const w = Math.floor(viewport.clientWidth) - 40;
-    const h = Math.floor(viewport.clientHeight) - 40;
+    const vw = viewport.clientWidth || window.innerWidth || 900;
+    const vh = viewport.clientHeight || window.innerHeight || 600;
+    const w = Math.floor(vw) - 40;
+    const h = Math.floor(vh) - 40;
     // cap to 900x700 to keep implicit <200ms even on large monitors (was 1600x1200 → 1.9M cols → 1572ms)
     return {
       width: Math.min(Math.max(w, 200), 900),
@@ -532,6 +534,12 @@
   }
 
   async function doLiveRender() {
+    if (!window.math || !window.GraphRender) {
+      if (liveIndicator)
+        liveIndicator.querySelector(".live-text").textContent = "loading…";
+      setTimeout(() => scheduleLive(true), 300);
+      return;
+    }
     if (liveIndicator)
       liveIndicator.querySelector(".live-text").textContent = "Live";
 
