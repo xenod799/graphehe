@@ -3,7 +3,7 @@ const path = require("path");
 const helmet = require("helmet");
 const rateLimit = require("express-rate-limit");
 const { validateAndParse } = require("./graph");
-const { RenderPool } = require("./render-pool");
+const { ShareStore } = require("./share");
 
 const app = express();
 const PORT = 8888;
@@ -14,14 +14,15 @@ const MAX_Y_RANGE = 1e6;
 
 app.set("trust proxy", "loopback");
 
+// Security: strict CSP, 16kb JSON, 30 req/min
 app.use(
   helmet({
     contentSecurityPolicy: {
       directives: {
         defaultSrc: ["'self'"],
-        scriptSrc: ["'self'"],
-        styleSrc: ["'self'"],
-        imgSrc: ["'self'", "blob:"],
+        scriptSrc: ["'self'", "'unsafe-inline'"],
+        styleSrc: ["'self'", "'unsafe-inline'"],
+        imgSrc: ["'self'", "blob:", "data:"],
         fontSrc: ["'self'"],
         connectSrc: ["'self'"],
         objectSrc: ["'none'"],
@@ -46,13 +47,109 @@ const apiLimiter = rateLimit({
 });
 app.use("/api/", apiLimiter);
 
+const shareStore = new ShareStore();
+
+// --- readable share links (30 days, tied to session) ---
+app.post("/api/share", (req, res) => {
+  const body = req.body || {};
+  const { equations, xMin, xMax, yMin, yMax, sessionId } = body;
+
+  if (
+    !Array.isArray(equations) ||
+    equations.length === 0 ||
+    !equations.some((e) => typeof e === "string" && e.trim() !== "")
+  ) {
+    return res.status(400).json({ error: "No equations provided." });
+  }
+  if (equations.length > MAX_EQUATIONS) {
+    return res
+      .status(400)
+      .json({ error: `Max ${MAX_EQUATIONS} equations allowed.` });
+  }
+
+  const xMinN = Number(xMin),
+    xMaxN = Number(xMax),
+    yMinN = Number(yMin),
+    yMaxN = Number(yMax);
+  const xMinVal = isFinite(xMinN) ? xMinN : -10;
+  const xMaxVal = isFinite(xMaxN) ? xMaxN : 10;
+  const yMinVal = isFinite(yMinN) ? yMinN : -7.5;
+  const yMaxVal = isFinite(yMaxN) ? yMaxN : 7.5;
+  if (xMinVal >= xMaxVal)
+    return res.status(400).json({ error: "xMin must be less than xMax." });
+  if (yMinVal >= yMaxVal)
+    return res.status(400).json({ error: "yMin must be less than yMax." });
+  if (xMaxVal - xMinVal > MAX_X_RANGE)
+    return res
+      .status(400)
+      .json({ error: `X range too large (max ${MAX_X_RANGE}).` });
+  if (yMaxVal - yMinVal > MAX_Y_RANGE)
+    return res
+      .status(400)
+      .json({ error: `Y range too large (max ${MAX_Y_RANGE}).` });
+  const bounds = { xMin: xMinVal, xMax: xMaxVal, yMin: yMinVal, yMax: yMaxVal };
+
+  const errors = {};
+  let hasValid = false;
+  for (let i = 0; i < equations.length; i++) {
+    const eq = equations[i];
+    if (!eq || typeof eq !== "string" || eq.trim() === "") continue;
+    const parsed = validateAndParse(eq);
+    if (parsed.error) errors[i] = parsed.error;
+    else hasValid = true;
+  }
+  if (!hasValid)
+    return res
+      .status(400)
+      .json({ errors, bounds, error: "No valid equations." });
+
+  // require at least one valid, but store all non-empty (so recipient sees same input)
+  const cleanEquations = equations.filter(
+    (e) => typeof e === "string" && e.trim() !== "",
+  );
+  const { slug, entry } = shareStore.create({
+    equations: cleanEquations,
+    bounds,
+    sessionId: sessionId || req.get("x-session-id") || null,
+  });
+  const host = req.get("host") || `127.0.0.1:${PORT}`;
+  const proto = req.get("x-forwarded-proto") || (req.secure ? "https" : "http");
+  const url = `${proto}://${host}/s/${slug}`;
+  res.json({ slug, url, expiresAt: entry.expiresAt, ttlDays: 30 });
+});
+
+app.get("/api/share/:slug", (req, res) => {
+  const entry = shareStore.get(req.params.slug);
+  if (!entry)
+    return res
+      .status(404)
+      .json({ error: "Share not found or expired (30 days)." });
+  res.json({
+    equations: entry.equations,
+    bounds: entry.bounds,
+    createdAt: entry.createdAt,
+    expiresAt: entry.expiresAt,
+  });
+});
+
 app.use(express.static(path.join(__dirname, "..", "public")));
 
-const pool = new RenderPool({ size: 2, timeoutMs: 15000, maxQueue: 4 });
+// serve app for readable short links — client will fetch /api/share/:slug
+// must be after static so /vendor/* etc are not captured
+app.get("/s/:slug", (req, res) => {
+  const entry = shareStore.get(req.params.slug);
+  if (!entry)
+    return res
+      .status(404)
+      .send(
+        `<!doctype html><html><body style="font-family:Inter,system-ui;padding:40px;color:#6B7280"><h1 style="color:#111827">Link expired</h1><p>This share link has expired (30 days) or does not exist.</p><p><a href="/">Back to GRaPHeNe</a></p></body></html>`,
+      );
+  res.sendFile(path.join(__dirname, "..", "public", "index.html"));
+});
 
-app.post("/api/generate-graph", async (req, res) => {
+function handleValidate(req, res) {
   const body = req.body || {};
-  const { equations, xMin, xMax, yMin, yMax, width, height } = body;
+  const { equations, xMin, xMax, yMin, yMax } = body;
 
   if (!Array.isArray(equations) || equations.length === 0) {
     return res.status(400).json({ error: "No equations provided." });
@@ -63,9 +160,6 @@ app.post("/api/generate-graph", async (req, res) => {
       .status(400)
       .json({ error: `Max ${MAX_EQUATIONS} equations allowed.` });
   }
-
-  const w = Math.min(Math.max(Number(width) || 800, 200), 1600);
-  const h = Math.min(Math.max(Number(height) || 600, 200), 1200);
 
   const xMinN = Number(xMin);
   const xMaxN = Number(xMax);
@@ -99,12 +193,10 @@ app.post("/api/generate-graph", async (req, res) => {
     xMax: xMaxVal,
     yMin: yMinVal,
     yMax: yMaxVal,
-    width: w,
-    height: h,
   };
 
   const errors = {};
-  const items = [];
+  const validated = [];
 
   for (let i = 0; i < equations.length; i++) {
     const eq = equations[i];
@@ -114,42 +206,21 @@ app.post("/api/generate-graph", async (req, res) => {
     if (parsed.error) {
       errors[i] = parsed.error;
     } else {
-      items.push({ str: eq, index: i });
+      validated.push({ str: eq, index: i, implicit: !!parsed.implicit });
     }
   }
 
-  if (items.length === 0) {
-    return res.status(400).json({ errors });
+  if (validated.length === 0) {
+    return res.status(400).json({ errors, bounds });
   }
 
-  let result;
-  try {
-    result = await pool.run({ items, bounds });
-  } catch (e) {
-    return res.status(e.status || 500).json({
-      errors,
-      error:
-        e.status === 503
-          ? "Server is busy, please try again shortly."
-          : "Render failed.",
-    });
-  }
+  return res.json({ errors, validated, bounds });
+}
 
-  if (result.renderError) {
-    return res.status(400).json({ errors, detail: "Render failed." });
-  }
-
-  if (result.buffer) {
-    res.set("Content-Type", "image/png");
-    res.set("Cache-Control", "public, max-age=3600");
-    if (Object.keys(errors).length > 0) {
-      res.set("X-Equation-Errors", JSON.stringify(errors));
-    }
-    return res.send(Buffer.from(result.buffer));
-  }
-
-  return res.status(400).json({ errors });
-});
+// New lightweight validation endpoint - clean JSON contact
+app.post("/api/validate", handleValidate);
+// Keep legacy path but now returns JSON instead of PNG (no heavy render, no worker pool)
+app.post("/api/generate-graph", handleValidate);
 
 app.use("/api", (req, res) => {
   res.status(404).json({ error: "Not found." });
@@ -162,5 +233,7 @@ app.use((err, req, res, next) => {
 });
 
 app.listen(PORT, "127.0.0.1", () => {
-  console.log(`GRaPHeNe server running at http://127.0.0.1:${PORT}`);
+  console.log(
+    `GRaPHeNe (client-render) server running at http://127.0.0.1:${PORT}`,
+  );
 });
