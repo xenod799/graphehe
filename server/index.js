@@ -50,9 +50,15 @@ app.use("/api/", apiLimiter);
 const shareStore = new ShareStore();
 
 // WebMCP: Chrome M146+ experimental interceptor tries to load /.webmcp/bridge.js
-// and throws if document.modelContext missing. Return empty stub to silence console.
+// and throws if document.modelContext missing. Return empty stub + headers to disable.
+app.use((req, res, next) => {
+  res.setHeader("Permissions-Policy", "model-context=()");
+  res.setHeader("Document-Policy", "force-load-at-top");
+  res.setHeader("X-WebMCP-Disable", "1");
+  next();
+});
 app.get("/.webmcp/*", (req, res) => {
-  res.type("application/javascript").send("// WebMCP disabled\n");
+  res.type("application/javascript").send("// WebMCP disabled for GRaPHeNe\nwindow.__webmcpDisabled=true;\n");
 });
 app.get("/.well-known/*", (req, res) => res.status(204).end());
 

@@ -620,11 +620,13 @@ html.dark .bound-row input:focus {
 @media (max-width: 768px) {
   html,
   body {
+    min-height: 100vh;
     min-height: 100dvh;
     overflow: visible;
     overflow-x: hidden;
   }
   #app {
+    min-height: 100vh;
     min-height: 100dvh;
     height: auto;
   }
