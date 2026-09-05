@@ -614,20 +614,77 @@ button {
 }
 
 @media (max-width: 768px) {
+  html,
+  body {
+    min-height: 100dvh;
+    overflow: visible;
+    overflow-x: hidden;
+  }
+  #app {
+    min-height: 100dvh;
+    height: auto;
+  }
+  #brand {
+    padding: 0 12px;
+    height: 48px;
+  }
+  #brand h1 {
+    font-size: 14px;
+  }
   #main {
     flex-direction: column;
   }
   #sidebar {
     width: 100%;
     min-width: 0;
-    max-height: 46vh;
+    max-height: 46dvh;
+    overflow-y: auto;
+    -webkit-overflow-scrolling: touch;
     border-right: 0;
     border-bottom: 1px solid var(--hair);
+    padding: 12px;
+    gap: 10px;
   }
-  #viewport {
-    min-height: 50vh;
+  .panel {
+    padding: 12px;
+  }
+  .eq-input {
+    font-size: 16px;
+    padding: 10px;
   }
   .remove-eq {
     opacity: 1;
+  }
+  .bound-row input {
+    font-size: 16px;
+    width: 84px;
+  }
+  #viewport {
+    flex: 1;
+    min-height: 54dvh;
+    padding: 10px;
+  }
+  #toolbar {
+    top: 8px;
+    right: 8px;
+  }
+  #toolbar button {
+    width: 32px;
+    height: 32px;
+  }
+  #status-chip {
+    bottom: 8px;
+    font-size: 10px;
+    max-width: 90vw;
+    text-overflow: ellipsis;
+    overflow: hidden;
+  }
+  #toast-stack {
+    left: 10px;
+    right: 10px;
+    bottom: 10px;
+  }
+  .toast {
+    max-width: none;
   }
 }

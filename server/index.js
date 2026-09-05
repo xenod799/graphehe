@@ -49,6 +49,13 @@ app.use("/api/", apiLimiter);
 
 const shareStore = new ShareStore();
 
+// WebMCP: Chrome M146+ experimental interceptor tries to load /.webmcp/bridge.js
+// and throws if document.modelContext missing. Return empty stub to silence console.
+app.get("/.webmcp/*", (req, res) => {
+  res.type("application/javascript").send("// WebMCP disabled\n");
+});
+app.get("/.well-known/*", (req, res) => res.status(204).end());
+
 // --- readable share links (30 days, tied to session) ---
 app.post("/api/share", (req, res) => {
   const body = req.body || {};
